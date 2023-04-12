@@ -4,6 +4,7 @@ import logging
 import numpy as np
 import scipy.interpolate
 from astropy import units as u
+from astropy.io import fits
 from astropy.table import Table
 from astropy.time import Time
 from astropy.utils import lazyproperty
@@ -11,7 +12,7 @@ from gammapy.maps import MapAxis, RegionNDMap, TimeMapAxis
 from gammapy.modeling import Parameter
 from gammapy.utils.random import InverseCDFSampler, get_random_state
 from gammapy.utils.scripts import make_path
-from gammapy.utils.time import time_ref_from_dict
+from gammapy.utils.time import time_ref_from_dict, time_ref_to_dict
 from .core import ModelBase, _build_parameters_from_dict
 
 __all__ = [
@@ -38,6 +39,16 @@ class TemporalModel(ModelBase):
 
     _type = "temporal"
 
+    def __init__(self, **kwargs):
+        scale = kwargs.pop("scale", "utc")
+        if scale not in Time.SCALES:
+            raise ValueError(
+                f"{scale} is not a valid time scale. Choose from {Time.SCALES}"
+            )
+        super().__init__(**kwargs)
+        if not hasattr(self, "scale"):
+            self.scale = scale
+
     def __call__(self, time):
         """Evaluate model
 
@@ -53,6 +64,25 @@ class TemporalModel(ModelBase):
     @property
     def type(self):
         return self._type
+
+    @property
+    def reference_time(self):
+        """Reference time in mjd"""
+        return Time(self.t_ref.value, format="mjd", scale=self.scale)
+
+    @reference_time.setter
+    def reference_time(self, t_ref):
+        """Reference time"""
+        if not isinstance(t_ref, Time):
+            raise TypeError(f"{t_ref} is not a {Time} object")
+        time = getattr(t_ref, self.scale)
+        self.t_ref.value = time.mjd
+
+    def to_dict(self, full_output=False):
+        """Create dict for YAML serilisation"""
+        data = super().to_dict(full_output)
+        data["temporal"]["scale"] = self.scale
+        return data
 
     @staticmethod
     def time_sum(t_min, t_max):
@@ -515,15 +545,17 @@ class LightCurveTemplateTemporalModel(TemporalModel):
         if "time" not in columns:
             raise ValueError("A TIME column is necessary")
 
-        t_ref = time_ref_from_dict(table.meta)
+        t_ref = time_ref_from_dict(table.meta, scale="utc")
         nodes = table["TIME"]
-        time_axis = MapAxis.from_nodes(
-            nodes=nodes, name="time", unit=table.meta["TIMEUNIT"]
-        )
+        ax_unit = nodes.quantity.unit
+        if not ax_unit.is_equivalent("d"):
+            try:
+                ax_unit = u.Unit(table.meta["TIMEUNIT"])
+            except KeyError:
+                raise ValueError("Time unit not found in the table")
+        time_axis = MapAxis.from_nodes(nodes=nodes, name="time", unit=ax_unit)
         axes = [time_axis]
-        m = RegionNDMap.create(
-            region=None, axes=axes, meta=table.meta, data=table["NORM"]
-        )
+        m = RegionNDMap.create(region=None, axes=axes, data=table["NORM"])
 
         return cls(m, t_ref=t_ref, filename=filename)
 
@@ -549,8 +581,10 @@ class LightCurveTemplateTemporalModel(TemporalModel):
             return cls.from_table(table, filename=filename)
 
         elif format == "map":
-            m = RegionNDMap.read(filename)
-            t_ref = time_ref_from_dict(m.meta)
+            with fits.open(filename) as hdulist:
+                m = RegionNDMap.from_hdulist(hdulist)
+                header = hdulist["SKYMAP_BANDS"].header
+            t_ref = time_ref_from_dict(header)
             return cls(m, t_ref=t_ref, filename=filename)
 
         else:
@@ -563,7 +597,7 @@ class LightCurveTemplateTemporalModel(TemporalModel):
         table = Table(
             data=[self.map.geom.axes["time"].center, self.map.quantity],
             names=["TIME", "NORM"],
-            meta=self.map.meta,
+            meta=time_ref_to_dict(self.reference_time, scale=self.scale),
         )
         return table
 
@@ -587,7 +621,12 @@ class LightCurveTemplateTemporalModel(TemporalModel):
             table = self.to_table()
             table.write(filename, overwrite=overwrite)
         elif format == "map":
-            self.map.write(filename, overwrite=overwrite)
+            # RegionNDMap.from_hdulist does not update the header
+            hdulist = self.map.to_hdulist()
+            hdulist["SKYMAP_BANDS"].header.update(
+                time_ref_to_dict(self.reference_time, scale=self.scale)
+            )
+            hdulist.writeto(filename, overwrite=overwrite)
         else:
             raise ValueError("Not a valid format, choose from ['map', 'table']")
 
@@ -595,7 +634,7 @@ class LightCurveTemplateTemporalModel(TemporalModel):
         """Evaluate the model at given coordinates."""
 
         if t_ref is None:
-            t_ref = Time(self.t_ref.value, format="mjd")
+            t_ref = Time(self.t_ref.value, format="mjd", scale="utc")
 
         t = (time - t_ref).to_value(self.map.geom.axes["time"].unit)
         coords = {"time": t}

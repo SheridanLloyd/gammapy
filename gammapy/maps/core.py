@@ -63,7 +63,8 @@ class Map(abc.ABC):
 
         for arg in argnames:
             value = getattr(self, "_" + arg)
-            kwargs.setdefault(arg, copy.deepcopy(value))
+            if arg not in kwargs:
+                kwargs[arg] = copy.deepcopy(value)
 
         return self.from_geom(**kwargs)
 
@@ -997,8 +998,8 @@ class Map(abc.ABC):
         if preserve_counts:
             if geom.ndim > 2 and geom.axes[0] != self.geom.axes[0]:
                 raise ValueError(
-                    f"Energy axis do not match: expected {self.geom.axes[0]},"
-                    " but got {geom.axes[0]}."
+                    f"Energy axes do not match, expected: \n {self.geom.axes[0]},"
+                    f" but got: \n {geom.axes[0]}."
                 )
             map_copy.data /= map_copy.geom.solid_angle().to_value("deg2")
 
@@ -1409,7 +1410,7 @@ class Map(abc.ABC):
             energy_axis = self.geom.axes["energy_true"].copy(name="energy")
 
         geom = self.geom.to_image().to_cube(axes=[energy_axis])
-        return self._init_copy(geom=geom, data=data)
+        return self.__class__(geom=geom, data=data, unit=self.unit)
 
     def mask_nearest_position(self, position):
         """Given a sky coordinate return nearest valid position in the mask

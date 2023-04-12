@@ -147,7 +147,7 @@ def plot_spectrum_datasets_off_regions(
     for props, dataset in zip(prop_cycle(), datasets):
         plot_kwargs = kwargs.copy()
         plot_kwargs["facecolor"] = "None"
-        plot_kwargs.setdefault("edgecolor", props.pop("color"))
+        plot_kwargs.setdefault("edgecolor")
         plot_kwargs.update(props)
 
         dataset.counts_off.plot_region(ax, **plot_kwargs)
@@ -278,5 +278,5 @@ def plot_theta_squared_table(table):
 
     ax1 = plt.subplot(2, 1, 2)
     ax1.errorbar(x, table["sqrt_ts"], xerr=xerr, linestyle="None")
-    ax1.set_xlabel(f"Theta  [{theta2_axis.unit}]")
+    ax1.set_xlabel(f"Theta [{theta2_axis.unit}]")
     ax1.set_ylabel("Significance")

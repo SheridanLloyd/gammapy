@@ -887,7 +887,8 @@ class MapAxis:
 
         for arg in argnames:
             value = getattr(self, "_" + arg)
-            kwargs.setdefault(arg, copy.deepcopy(value))
+            if arg not in kwargs:
+                kwargs[arg] = copy.deepcopy(value)
 
         return self.__class__(**kwargs)
 
@@ -1999,7 +2000,7 @@ class MapAxes(Sequence):
                 except (KeyError, TypeError):
                     try:
                         axis = TimeMapAxis.from_table(table, format=format, idx=idx)
-                    except (KeyError, ValueError):
+                    except (KeyError, ValueError, IndexError):
                         axis = MapAxis.from_table(table, format=format, idx=idx)
 
                 axes.append(axis)
@@ -2354,7 +2355,6 @@ class TimeMapAxis:
             center = self.time_mid.datetime
         elif self.time_format == "mjd":
             center = self.time_mid.mjd * u.day
-
         return center
 
     def format_plot_xaxis(self, ax):
@@ -2565,7 +2565,8 @@ class TimeMapAxis:
 
         for arg in argnames:
             value = getattr(self, "_" + arg)
-            kwargs.setdefault(arg, copy.deepcopy(value))
+            if arg not in kwargs:
+                kwargs[arg] = copy.deepcopy(value)
 
         return self.__class__(**kwargs)
 
@@ -2696,11 +2697,27 @@ class TimeMapAxis:
         elif format == "lightcurve":
             # TODO: is this a good format? It just supports mjd...
             name = "time"
-            scale = table.meta.get("TIMESYS", "utc")
-            time_min = Time(table["time_min"].data, format="mjd", scale=scale)
-            time_max = Time(table["time_max"].data, format="mjd", scale=scale)
-            reference_time = Time("2001-01-01T00:00:00")
-            reference_time.format = "mjd"
+            time_ref_dict = dict(
+                MJDREFF=table.meta.get("MJDREFF", 0),
+                MJDREFI=table.meta.get("MJDREFI", 0),
+                TIMESYS=table.meta.get("TIMESYS", "utc"),
+                TIMEUNIT=table.meta.get("TIMEUNIT", "d"),
+            )
+            reference_time = time_ref_from_dict(time_ref_dict, format="mjd")
+            time_min = reference_time + table["time_min"].data * u.Unit(
+                time_ref_dict["TIMEUNIT"]
+            )
+            time_max = reference_time + table["time_max"].data * u.Unit(
+                time_ref_dict["TIMEUNIT"]
+            )
+
+            if reference_time.mjd == 0:
+                # change to a more recent reference time
+                reference_time = Time(
+                    "2001-01-01T00:00:00", scale=time_ref_dict["TIMESYS"]
+                )
+                reference_time.format = "mjd"
+
             edges_min = (time_min - reference_time).to("s")
             edges_max = (time_max - reference_time).to("s")
         else:
@@ -3128,4 +3145,67 @@ class LabelMapAxis:
         return self.__class__(
             labels=self._labels[idx],
             name=self.name,
+        )
+
+    @classmethod
+    def from_stack(cls, axes):
+        """Create a label map axis by merging a list of axis.
+
+        Parameter
+        ---------
+        axes : list of `LabelMapAxis`
+            A list of map axis to be merged.
+
+        Returns
+        -------
+        axis : `LabelMapAxis`
+            Merged axis.
+        """
+
+        axis_stacked = axes[0]
+
+        for ax in axes[1:]:
+            axis_stacked = axis_stacked.append(ax)
+
+        return axis_stacked
+
+    def append(self, axis):
+        """Append another label map axis to this label map axis.
+
+        Names must agree between the axes. labels must be unique.
+
+        Parameters
+        ----------
+        axis : `LabelMapAxis`
+            Axis to append.
+
+        Returns
+        -------
+        axis : `LabelMapAxis`
+            Appended axis
+        """
+        if not isinstance(axis, LabelMapAxis):
+            raise TypeError(
+                f"axis must be an instance of LabelMapAxis, got {axis.__class__.__name__} instead."
+            )
+
+        if self.name != axis.name:
+            raise ValueError(f"Names must agree, got {self.name} and {axis.name} ")
+
+        merged_labels = np.append(self.center, axis.center)
+
+        return LabelMapAxis(merged_labels, self.name)
+
+    def squash(self):
+        """Create a new axis object by squashing the axis into one bin.
+
+        The label of the new axis is given as "first-label...last-label".
+
+        Returns
+        -------
+        axis : `~MapAxis`
+            Sliced axis object.
+        """
+        return LabelMapAxis(
+            labels=[self.center[0] + "..." + self.center[-1]], name=self._name
         )

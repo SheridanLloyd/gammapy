@@ -102,7 +102,9 @@ def create_map_dataset_geoms(
 class MapDataset(Dataset):
     """
     Bundle together binned counts, background, IRFs, models and compute a likelihood.
-     Uses Cash statistics by default.
+    It uses the Cash statistics by default.
+
+    For more information see :ref:`datasets`.
 
     Parameters
     ----------
@@ -1939,7 +1941,9 @@ class MapDataset(Dataset):
 
 
 class MapDatasetOnOff(MapDataset):
-    """Map dataset for on-off likelihood fitting. Uses wstat statistics.
+    """Map dataset for on-off likelihood fitting. It uses wstat statistics by default.
+
+    For more information see :ref:`datasets`.
 
     Parameters
     ----------
@@ -2061,10 +2065,10 @@ class MapDatasetOnOff(MapDataset):
             Alpha map
         """
         with np.errstate(invalid="ignore", divide="ignore"):
-            alpha = self.acceptance / self.acceptance_off
+            data = self.acceptance.quantity / self.acceptance_off.quantity
+        data = np.nan_to_num(data)
 
-        alpha.data = np.nan_to_num(alpha.data)
-        return alpha
+        return Map.from_geom(self._geom, data=data.to_value(""), unit="")
 
     def npred_background(self):
         """Predicted background counts estimated from the marginalized likelihood estimate.
