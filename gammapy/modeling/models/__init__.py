@@ -62,7 +62,10 @@ from .temporal import (
     TemporalModel,
 )
 
+from .spectral_BHJet import BHJetSpectralModel
+
 __all__ = [
+    "BHJetSpectralModel",
     "BrokenPowerLawSpectralModel",
     "CompoundSpectralModel",
     "ConstantFluxSpatialModel",

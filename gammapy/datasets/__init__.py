@@ -5,7 +5,7 @@ from .io import OGIPDatasetReader, OGIPDatasetWriter
 from .map import MapDataset, MapDatasetOnOff, create_map_dataset_geoms
 from .simulate import MapDatasetEventSampler
 from .spectrum import SpectrumDataset, SpectrumDatasetOnOff
-
+from .ogip_spectrum_dataset import StandardOGIPDataset
 DATASET_REGISTRY = Registry(
     [
         MapDataset,
@@ -13,6 +13,7 @@ DATASET_REGISTRY = Registry(
         SpectrumDataset,
         SpectrumDatasetOnOff,
         FluxPointsDataset,
+        StandardOGIPDataset,
     ]
 )
 
@@ -31,4 +32,5 @@ __all__ = [
     "OGIPDatasetReader",
     "SpectrumDataset",
     "SpectrumDatasetOnOff",
+    "StandardOGIPDataset",
 ]
