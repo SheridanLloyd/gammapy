@@ -83,7 +83,7 @@ class FluxPointsDataset(Dataset):
 
     stat_type = "chi2"
     tag = "FluxPointsDataset"
-
+    joint_fit_weight = 1.0  # use in MWL joint fit to scale fit statistic contribution to overall fit
     def __init__(
         self,
         models=None,
