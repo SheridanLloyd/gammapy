@@ -182,7 +182,7 @@ class MapDataset(Dataset):
     psf = LazyFitsData(cache=True)
     mask_fit = LazyFitsData(cache=True)
     mask_safe = LazyFitsData(cache=True)
-
+    joint_fit_weight = 1.0  # use in MWL joint fit to scale fit statistic contribution to overall fit
     _lazy_data_members = [
         "counts",
         "exposure",
