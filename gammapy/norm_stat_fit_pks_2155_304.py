@@ -21,7 +21,8 @@ from catalog import SourceCatalogHGPS
 from gammapy.utils.regions import (
     make_concentric_annulus_sky_regions
 )
-
+run_individual_fit=False # to try a manual fit we can adjust params above and skip full fit which might take an hour
+run_joint_fit=True
 
 # read Lucas test files as tutorial.ipynb at
 # https://github.com/luca-giunti/gammapyXray/blob/main/tutorial.ipynb
@@ -321,77 +322,84 @@ fit_datasets.append(optical_dataset)
 
 from gammapy.modeling.models import Models, BHJetSpectralModel, SkyModel
 
-run_full_fit=True # to try a manual fit we can adjust params above and skip full fit which might take an hour
 
 # test neg stat on Fermi fit
-modelBHJet=MH.fermi_neg_stat()
-BHJetmodel = SkyModel(spectral_model=modelBHJet, name="BHJet")
-models = Models([BHJetmodel])
+# modelBHJet=MH.fermi_neg_stat()
+# BHJetmodel = SkyModel(spectral_model=modelBHJet, name="BHJet")
+# models = Models([BHJetmodel])
+
+if run_individual_fit:
+    print ("Running individual fits to determine stat normalisation")
+    print ("-------------------------------------------------------")
+    #modelBHJet=MH.run_8()
+    #modelBHJet=MH.run_9_low_hess_stats()
+    modelBHJet=MH.Matteo_1810_11341()
+    #modelBHJet=MH.run_9_low_hess_stats()
+    #modelBHJet=MH.run_8()
 
 
-#modelBHJet=MH.run_8()
-#modelBHJet=MH.run_9_low_hess_stats()
-#modelBHJet=MH.Matteo_1810_11341()
-modelBHJet=MH.run_9_low_hess_stats()
-#modelBHJet=MH.run_8()
-BHJetmodel = SkyModel(spectral_model=modelBHJet, name="BHJet")
-models = Models([BHJetmodel])
-fermi_results=FH.get_fit(fermi_fit_datasets,models)
+    BHJetmodel = SkyModel(spectral_model=modelBHJet, name="BHJet")
+    models = Models([BHJetmodel])
+    fermi_results=FH.get_fit(fermi_fit_datasets,models)
+
+    # individual fits to obtain a normalisation so that one
+    # dataset with a very high fit statistic does not dominate?
+    # left out optical as GSL croaks when considering optical alone
+    modelBHJet=MH.Matteo_1810_11341()
+    BHJetmodel = SkyModel(spectral_model=modelBHJet, name="BHJet")
+    models = Models([BHJetmodel])
+    HESS_results=FH.get_fit(HESS_fit_datasets,models)
+    #
+    modelBHJet=MH.Matteo_1810_11341()
+    BHJetmodel = SkyModel(spectral_model=modelBHJet, name="BHJet")
+    models = Models([BHJetmodel])
+    xmm_results=FH.get_fit(xmm_fit_datasets,models)
+    #
+    #modelBHJet=MH.Matteo_1810_11341()
+    #BHJetmodel = SkyModel(spectral_model=modelBHJet, name="BHJet")
+    #models = Models([BHJetmodel])
+    #fermi_results=FH.get_fit(fermi_fit_datasets,models)
+
+    all_stats={}
+    #all_stats["HESS"]=HESS_results.total_stat
+    #all_stats["FERMI"]=fermi_results.total_stat
+    #all_stats["XMM"]=xmm_results.total_stat
+
+    all_stats[HESS_fit_datasets[0].name]=HESS_results.total_stat
+    all_stats[fermi_fit_datasets[0].name]=fermi_results.total_stat
+    all_stats[xmm_fit_datasets[0].name]=xmm_results.total_stat
+
+    sorted_all_stats=dict(sorted(all_stats.items(), key=lambda item: item[1]))
+    sorted_all_stats_list=list(sorted_all_stats.values())
+    min_stat=sorted_all_stats_list[0]
+
+    #scaling_factors={}
+    for k,v in sorted_all_stats.items():
+        fit_datasets[k].joint_fit_weight=v/min_stat # joint fit weight is 1 by default on initialised datasets
 
 
-# individual fits to obtain a normalisation so that one
-# dataset with a very high fit statistic does not dominate?
-# left out optical as GSL croaks when considering optical alone
-HESS_results=FH.get_fit(HESS_fit_datasets,models)
+if run_joint_fit:
 
-modelBHJet=MH.Matteo_1810_11341()
-BHJetmodel = SkyModel(spectral_model=modelBHJet, name="BHJet")
-models = Models([BHJetmodel])
+    print ("Running joint fit")
+    print ("-----------------")
 
-xmm_results=FH.get_fit(xmm_fit_datasets,models)
+    fit_datasets["hess_reduced"].joint_fit_weight=0.01 # enhance HESS weighting
+    fit_datasets["Fermi"].joint_fit_weight = 6 # val from individuak fit
+    for k in fit_datasets:
+        if k.tag=="StandardOGIPDataset":
+            k.joint_fit_weight=21384 # val from individual fat
 
-modelBHJet=MH.Matteo_1810_11341()
-BHJetmodel = SkyModel(spectral_model=modelBHJet, name="BHJet")
-models = Models([BHJetmodel])
+    modelBHJet=MH.Matteo_1810_11341()
+    #modelBHJet=MH.joint_fit_model_norm_weight()
+    BHJetmodel = SkyModel(spectral_model=modelBHJet, name="BHJet")
+    models = Models([BHJetmodel])
 
-fermi_results=FH.get_fit(fermi_fit_datasets,models)
-
-all_stats={}
-#all_stats["HESS"]=HESS_results.total_stat
-#all_stats["FERMI"]=fermi_results.total_stat
-#all_stats["XMM"]=xmm_results.total_stat
-
-all_stats[HESS_fit_datasets[0].name]=HESS_fit_datasets[0].joint_fit_weight
-all_stats[fermi_fit_datasets[0].name]=fermi_fit_datasets[0].joint_fit_weight
-all_stats[xmm_fit_datasets[0].name]=xmm_fit_datasets[0].joint_fit_weight
-
-sorted_all_stats=dict(sorted(all_stats.items(), key=lambda item: item[1]))
-sorted_all_stats_list=list(sorted_all_stats.values())
-min_stat=sorted_all_stats_list[0]
-
-#scaling_factors={}
-for k,v in sorted_all_stats.items():
-    fit_datasets[k].joint_fit_weight=v/min_stat # joint fit weight is 1 by default on initialised datasets
-
-
-modelBHJet=MH.Matteo_1810_11341()
-BHJetmodel = SkyModel(spectral_model=modelBHJet, name="BHJet")
-models = Models([BHJetmodel])
-
-if run_full_fit:
     print("JOINT FIT DATASET")
     print(fit_datasets)
     fit_datasets.models = models
-    # FIT CODE
-    # # Fit of model - will fit BHJet model - comment out for now
-
-    print ("sjl-Model before fit")
-    print (modelBHJet)
     fit_joint = Fit()
     results_joint = fit_joint.run(datasets=fit_datasets)
     print(results_joint)
-    print ("sjl-Model after fit")
-    print (modelBHJet)
 
 
 plot_datasets.models = [model1] #pl model
@@ -498,9 +506,7 @@ ax.set_ylim(bottom=1e-13,top=1e-6)
 ax.set_xlim(left=1e-6,right=1e10)
 ax.legend()
 
-show_plot=False
-if show_plot:
-    plt.show()
+plt.show()
 
 all_flux_points=FluxPoints.from_table(table_all,sed_type='e2dnde')
 
@@ -514,6 +520,9 @@ for row in table_all:
     all_flux_points.energy_min[row.index] = row['e_min'] * table_all['e_min'].unit
     all_flux_points.energy_max[row.index] = row['e_max'] * table_all['e_max'].unit
 
+modelBHJet=MH.joint_fit_model_norm_weight()
+BHJetmodel = SkyModel(spectral_model=modelBHJet, name="BHJet")
+models = Models([BHJetmodel])
 
 dataset = FluxPointsDataset(BHJetmodel, all_flux_points)
 #configuring optional parameters
