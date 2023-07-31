@@ -52,10 +52,11 @@ class StandardOGIPDataset(SpectrumDatasetOnOff):
 
     def __init__(self, *args, **kwargs):
         self._grouped = None
-        axis = kwargs.pop("grouping_axis", None)
-        super().__init__(*args, **kwargs)
+        axis = kwargs.pop("grouping_axis", None) # destructive read causing issues on reinit in flux evaluate
+        super().__init__(*args, **kwargs) # but needed for the super method call - add back in
         self.grouping_axis = axis
-        self.apply_grouping(self.grouping_axis)
+        if (axis is not None):
+            self.apply_grouping(self.grouping_axis)
 
     @property
     def grouped(self):
