@@ -140,32 +140,33 @@ class BHJetSpectralModel(SpectralModel):
         dnde : `~astropy.units.Quantity`
             Differential flux at given energy.
         """
-        self.param[0] = kwargs.get("Mbh")
-        self.param[1] = kwargs.get("theta")
-        self.param[2] = kwargs.get("dist")
-        self.param[3] = kwargs.get("redsh")
-        self.param[4] = kwargs.get("jetrat")
-        self.param[5] = kwargs.get("r_0")
-        self.param[6] = kwargs.get("z_diss")
-        self.param[7] = kwargs.get("z_acc")
-        self.param[8] = kwargs.get("z_max")
-        self.param[9] = kwargs.get("t_e")
-        self.param[10] = kwargs.get("f_nth")
-        self.param[11] = kwargs.get("f_pl")
-        self.param[12] = kwargs.get("pspec")
-        self.param[13] = kwargs.get("f_heat")
-        self.param[14] = kwargs.get("f_beta")
-        self.param[15] = kwargs.get("f_sc")
-        self.param[16] = kwargs.get("p_beta")
-        self.param[17] = kwargs.get("sig_acc")
-        self.param[18] = kwargs.get("l_disk")
-        self.param[19] = kwargs.get("r_in")
-        self.param[20] = kwargs.get("r_out")
+        # Also see BHJet paper axiv 2108.12011
+        self.param[0] = kwargs.get("Mbh")     # BH Mass in solar masses
+        self.param[1] = kwargs.get("theta")   # Viewing angle degrees (wrt Jet axis)
+        self.param[2] = kwargs.get("dist")    # distance kpc
+        self.param[3] = kwargs.get("redsh")   # Redshift
+        self.param[4] = kwargs.get("jetrat")  # Jet power Eddington units
+        self.param[5] = kwargs.get("r_0")     # Jet base radius Rg
+        self.param[6] = kwargs.get("z_diss")  # Location non thermal acceleration Rg
+        self.param[7] = kwargs.get("z_acc")   # End of bulk jet acceleration (only if velsw>1)
+        self.param[8] = kwargs.get("z_max")   # Largest distance inn bulk jet
+        self.param[9] = kwargs.get("t_e")     # Lepton temperature at jet base keV
+        self.param[10] = kwargs.get("f_nth")  # Fraction of lepton number density channelled into non-thermal tail
+        self.param[11] = kwargs.get("f_pl")   # Phenomenological parameter used to fit inverted radio spectra
+        self.param[12] = kwargs.get("pspec")  # non thermal slope
+        self.param[13] = kwargs.get("f_heat") # Shock heating increases Te by a factor f_heat at Z_diss
+        self.param[14] = kwargs.get("f_beta") # dynamic timescale
+        self.param[15] = kwargs.get("f_sc")   # Accln timescale, f_sc<1 sets max Lorentz factor of non-thermal tail, >=10 sets max Lorentz through whole jet
+        self.param[16] = kwargs.get("p_beta") # plasma beta
+        self.param[17] = kwargs.get("sig_acc")# Magnetisation at end of bulk jet if velsw>1
+        self.param[18] = kwargs.get("l_disk") # Disk luminosity Eddington units
+        self.param[19] = kwargs.get("r_in")   # Innermost disk radius Rg
+        self.param[20] = kwargs.get("r_out")  # Outermost disk radius Rg
         self.param[21] = kwargs.get("compar1")
         self.param[22] = kwargs.get("compar2")
         self.param[23] = kwargs.get("compar3")
         self.param[24] = kwargs.get("compsw")
-        self.param[25] = kwargs.get("velsw")
+        self.param[25] = kwargs.get("velsw")  #0 or 1 =Agnjet flavor, otherwise bljet flavor gamma acc = velsw
         self.param[26] = kwargs.get("infosw")
 
         print("kwargs in evaluate")
