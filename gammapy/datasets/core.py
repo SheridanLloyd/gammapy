@@ -222,6 +222,8 @@ class Datasets(collections.abc.MutableSequence):
         stat_sum = 0
         # TODO: add parallel evaluation of likelihoods
         for dataset in self:
+            print (str(dataset.stat_sum()) + " " + dataset.name + " " + dataset.stat_type + " " + dataset.tag )
+            #stat_sum += (dataset.stat_sum()/dataset.joint_fit_weight)
             stat_sum += dataset.stat_sum()
         return stat_sum
 
