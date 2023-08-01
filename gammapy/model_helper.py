@@ -226,6 +226,17 @@ def fermi_neg_stat():
 
 
     return modelBHJet
+
+def joint_fit_model_norm_weight():
+    # from RUN 17 - achieved stat of 177 (weighted so that HESS x10 favoured)
+    BHJetparams = {'Mbh': 1.e+09, 'theta': 2.5, 'dist': 543400., 'redsh': 0.116, 'jetrat': 0.00449045, 'r_0': 11.26482938,
+     'z_diss': 1878.4594537, 'z_acc': 1000., 'z_max': 660000., 't_e': 511.00532878, 'f_nth': 0.1, 'f_pl': 0.,
+     'pspec': 2.20984303, 'f_heat': 0.57659825, 'f_beta': 87.75222989, 'f_sc': 0.12426452, 'p_beta': 0.,
+     'sig_acc': 0.86340635, 'l_disk': 0.8, 'r_in': 38.01976458, 'r_out': 100000., 'compar1': 0.05, 'compar2': 0.5,
+     'compar3': 2., 'compsw': 2., 'velsw': 15., 'infosw': 0., 'dummy_norm': 1.}
+    modelBHJet = BHJetSpectralModel(**BHJetparams)
+
+    return modelBHJet
 def Matteo_1810_11341():
     # PKS 2155-304 using canonical Blazar params as Table 4 BHJet paper 2108.12011
     # bit of a mash-up with 2108.12011 as some parameters have changed names/meaning

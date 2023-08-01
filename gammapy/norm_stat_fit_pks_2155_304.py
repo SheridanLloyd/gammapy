@@ -22,7 +22,7 @@ from gammapy.utils.regions import (
     make_concentric_annulus_sky_regions
 )
 run_individual_fit=False # to try a manual fit we can adjust params above and skip full fit which might take an hour
-run_joint_fit=True
+run_joint_fit=False
 
 # read Lucas test files as tutorial.ipynb at
 # https://github.com/luca-giunti/gammapyXray/blob/main/tutorial.ipynb
@@ -383,7 +383,7 @@ if run_joint_fit:
     print ("Running joint fit")
     print ("-----------------")
 
-    fit_datasets["hess_reduced"].joint_fit_weight=0.01 # enhance HESS weighting
+    fit_datasets["hess_reduced"].joint_fit_weight=1 # enhance HESS weighting
     fit_datasets["Fermi"].joint_fit_weight = 6 # val from individuak fit
     for k in fit_datasets:
         if k.tag=="StandardOGIPDataset":
@@ -520,9 +520,10 @@ for row in table_all:
     all_flux_points.energy_min[row.index] = row['e_min'] * table_all['e_min'].unit
     all_flux_points.energy_max[row.index] = row['e_max'] * table_all['e_max'].unit
 
-modelBHJet=MH.joint_fit_model_norm_weight()
-BHJetmodel = SkyModel(spectral_model=modelBHJet, name="BHJet")
-models = Models([BHJetmodel])
+if not run_joint_fit:
+    modelBHJet=MH.joint_fit_model_norm_weight()
+    BHJetmodel = SkyModel(spectral_model=modelBHJet, name="BHJet")
+    models = Models([BHJetmodel])
 
 dataset = FluxPointsDataset(BHJetmodel, all_flux_points)
 #configuring optional parameters
