@@ -223,8 +223,10 @@ class Datasets(collections.abc.MutableSequence):
         # TODO: add parallel evaluation of likelihoods
         for dataset in self:
             print (str(dataset.stat_sum()) + " " + dataset.name + " " + dataset.stat_type + " " + dataset.tag )
-            #stat_sum += (dataset.stat_sum()/dataset.joint_fit_weight)
-            stat_sum += dataset.stat_sum()
+            stat_sum += (dataset.stat_sum()/dataset.joint_fit_weight)
+            #stat_sum += dataset.stat_sum()
+        print ("Total Stat " + str(stat_sum) )
+
         return stat_sum
 
     def select_time(self, time_min, time_max, atol="1e-6 s"):
