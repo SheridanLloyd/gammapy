@@ -22,7 +22,7 @@ from gammapy.utils.regions import (
     make_concentric_annulus_sky_regions
 )
 run_individual_fit=False # to try a manual fit we can adjust params above and skip full fit which might take an hour
-run_joint_fit=True # fit broadband obs using a weighted scheme
+run_joint_fit=False # fit broadband obs using a weighted scheme
 
 # read Lucas test files as tutorial.ipynb at
 # https://github.com/luca-giunti/gammapyXray/blob/main/tutorial.ipynb
@@ -390,10 +390,8 @@ if run_joint_fit:
             if k.tag=="StandardOGIPDataset":
                 k.joint_fit_weight=21384 # val from individual fat
 
-    #modelBHJet=MH.Matteo_1810_11341()
+    modelBHJet=MH.Matteo_1810_11341()
     #modelBHJet=MH.joint_fit_model_norm_weight()
-    #modelBHJet=MH.run25_final()
-    modelBHJet = MH.run_30_final()
     BHJetmodel = SkyModel(spectral_model=modelBHJet, name="BHJet")
     models = Models([BHJetmodel])
 
@@ -528,7 +526,11 @@ for row in table_all:
     all_flux_points.energy_max[row.index] = row['e_max'] * table_all['e_max'].unit
 
 if not run_joint_fit:
-    modelBHJet=MH.joint_fit_model_norm_weight()
+    #modelBHJet=MH.joint_fit_model_norm_weight() # this was the good bband fit
+    #modelBHJet = MH.good_fermi()
+    #modelBHJet = MH.good_hess()
+    #modelBHJet = MH.good_xmm()
+    modelBHJet = MH.good_joint_fit()
     BHJetmodel = SkyModel(spectral_model=modelBHJet, name="BHJet")
     models = Models([BHJetmodel])
 

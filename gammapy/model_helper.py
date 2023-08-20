@@ -269,7 +269,7 @@ def Matteo_1810_11341():
         "velsw": 15,  # synonym gamma acc , invokes BLJET flavor of model
         "infosw": 0
     }
-
+    # Change mins as a result of good fit hitting the minimums
     # Plot the separate contributions from each seed photon field
     modelBHJet = BHJetSpectralModel(**BHJetparams)
 
@@ -284,25 +284,29 @@ def Matteo_1810_11341():
     modelBHJet.r_0.max = 200
 
     modelBHJet.z_diss.frozen = False
-    modelBHJet.z_diss.min = 500
+    #modelBHJet.z_diss.min = 500
+    modelBHJet.z_diss.min = 10
     modelBHJet.z_diss.max = 2500
 
     modelBHJet.sig_acc.frozen = False
     modelBHJet.sig_acc.min = 1e-3
     #modelBHJet.sig_acc.max = 1e-1
-    modelBHJet.sig_acc.max = 100
+    #modelBHJet.sig_acc.max = 100 # run 27
+    modelBHJet.sig_acc.max = 500
 
     modelBHJet.pspec.frozen = False
     modelBHJet.pspec.min = 1
     modelBHJet.pspec.max = 4
 
     modelBHJet.f_heat.frozen = False
-    modelBHJet.f_heat.min = 0.1
+    #modelBHJet.f_heat.min = 0.1
+    modelBHJet.f_heat.min = 0.01 # reduce min
     modelBHJet.f_heat.max = 2.5
 
     modelBHJet.f_beta.frozen = False
     modelBHJet.f_beta.min = 10
-    modelBHJet.f_beta.max = 100
+    #modelBHJet.f_beta.max = 100
+    modelBHJet.f_beta.max = 1000 # increase as was hitting max
 
     modelBHJet.f_sc.frozen = False
     modelBHJet.f_sc.min = 1e-7
@@ -314,13 +318,134 @@ def Matteo_1810_11341():
     modelBHJet.r_in.max = 200 # very big ranges can be 5e3 in BHJet paper
 
     modelBHJet.t_e.frozen = False
-    modelBHJet.t_e.min = 511
-    modelBHJet.t_e.max = 2000
+    #modelBHJet.t_e.min = 511
+    modelBHJet.t_e.min = 10 # was hitting limit so change
+    #modelBHJet.t_e.max = 2000 #run 27
+    modelBHJet.t_e.max = 4000
 
     return modelBHJet
 
 
+def run25_final():
+    BHJetparams={'Mbh': 1.e+09, 'theta': 2.5, 'dist': 543400., 'redsh': 0.116, 'jetrat': 0.0030991, 'r_0': 10.57909962,
+     'z_diss': 506.37911635, 'z_acc': 1000., 'z_max': 660000., 't_e': 511.00003397, 'f_nth': 0.1, 'f_pl': 0.,
+     'pspec': 2.09074565, 'f_heat': 0.10000027, 'f_beta': 99.99999795, 'f_sc': 0.00782045, 'p_beta': 0.,
+     'sig_acc': 0.11494939, 'l_disk': 0.8, 'r_in': 33.87755264, 'r_out': 100000., 'compar1': 0.05, 'compar2': 0.5,
+     'compar3': 2., 'compsw': 2., 'velsw': 15., 'infosw': 0., 'dummy_norm': 1.}
 
+    # Change mins as a result of good fit hitting the minimums
+    # Plot the separate contributions from each seed photon field
+    modelBHJet = BHJetSpectralModel(**BHJetparams)
+
+    modelBHJet.f_nth.frozen = True
+
+    modelBHJet.jetrat.frozen = False
+    modelBHJet.jetrat.min = 1e-4
+    modelBHJet.jetrat.max = 1e-1
+
+    modelBHJet.r_0.frozen = False
+    modelBHJet.r_0.min = 1
+    modelBHJet.r_0.max = 200
+
+    modelBHJet.z_diss.frozen = False
+    #modelBHJet.z_diss.min = 500
+    modelBHJet.z_diss.min = 10
+    modelBHJet.z_diss.max = 2500
+
+    modelBHJet.sig_acc.frozen = False
+    modelBHJet.sig_acc.min = 1e-3
+    #modelBHJet.sig_acc.max = 1e-1
+    #modelBHJet.sig_acc.max = 100 # run 27
+    modelBHJet.sig_acc.max = 500
+
+    modelBHJet.pspec.frozen = False
+    modelBHJet.pspec.min = 1
+    modelBHJet.pspec.max = 4
+
+    modelBHJet.f_heat.frozen = False
+    #modelBHJet.f_heat.min = 0.1
+    modelBHJet.f_heat.min = 0.01 # reduce min
+    modelBHJet.f_heat.max = 2.5
+
+    modelBHJet.f_beta.frozen = False
+    modelBHJet.f_beta.min = 10
+    #modelBHJet.f_beta.max = 100
+    modelBHJet.f_beta.max = 1000 # increase as was hitting max
+
+    modelBHJet.f_sc.frozen = False
+    modelBHJet.f_sc.min = 1e-7
+    #modelBHJet.f_sc.max = 1e-5 # very big ranges can be 5e3 in BHJet paper
+    modelBHJet.f_sc.max = 100
+
+    modelBHJet.r_in.frozen = False
+    modelBHJet.r_in.min = 1
+    modelBHJet.r_in.max = 200 # very big ranges can be 5e3 in BHJet paper
+
+    modelBHJet.t_e.frozen = False
+    #modelBHJet.t_e.min = 511
+    modelBHJet.t_e.min = 10 # was hitting limit so change
+    #modelBHJet.t_e.max = 2000 #run 27
+    modelBHJet.t_e.max = 4000
+    return modelBHJet
+
+def run_30_final():
+    print("Use run_30_final)")
+    BHJetparams={'Mbh':  1.e+09, 'theta':  2.5, 'dist':  543400., 'redsh':  0.116, 'jetrat':  0.00612095, 'r_0':  10.5869359, 'z_diss':  287.21589913, 'z_acc':  1000., 'z_max':  660000., 't_e':  322.57727993, 'f_nth':  0.1, 'f_pl':  0., 'pspec':  2.21242564, 'f_heat':  0.01000024, 'f_beta':  999.99982078, 'f_sc':  0.00172837, 'p_beta':  0., 'sig_acc':  0.23902557, 'l_disk':  0.8, 'r_in':  33.91879099, 'r_out':  100000., 'compar1':  0.05, 'compar2':  0.5, 'compar3':  2., 'compsw':  2., 'velsw':  15., 'infosw':  0., 'dummy_norm':  1.}
+
+    # Change mins as a result of good fit hitting the minimums
+    # Plot the separate contributions from each seed photon field
+    modelBHJet = BHJetSpectralModel(**BHJetparams)
+
+    modelBHJet.f_nth.frozen = True
+
+    modelBHJet.jetrat.frozen = False
+    modelBHJet.jetrat.min = 1e-4
+    modelBHJet.jetrat.max = 1e-1
+
+    modelBHJet.r_0.frozen = False
+    modelBHJet.r_0.min = 1
+    modelBHJet.r_0.max = 200
+
+    modelBHJet.z_diss.frozen = False
+    #modelBHJet.z_diss.min = 500
+    modelBHJet.z_diss.min = 10
+    modelBHJet.z_diss.max = 2500
+
+    modelBHJet.sig_acc.frozen = False
+    modelBHJet.sig_acc.min = 1e-3
+    #modelBHJet.sig_acc.max = 1e-1
+    #modelBHJet.sig_acc.max = 100 # run 27
+    modelBHJet.sig_acc.max = 500
+
+    modelBHJet.pspec.frozen = False
+    modelBHJet.pspec.min = 1
+    modelBHJet.pspec.max = 4
+
+    modelBHJet.f_heat.frozen = False
+    #modelBHJet.f_heat.min = 0.1
+    modelBHJet.f_heat.min = 0.001 # reduce min
+    modelBHJet.f_heat.max = 2.5
+
+    modelBHJet.f_beta.frozen = False
+    modelBHJet.f_beta.min = 10
+    #modelBHJet.f_beta.max = 100
+    modelBHJet.f_beta.max = 10000 # increase as was hitting max
+
+    modelBHJet.f_sc.frozen = False
+    modelBHJet.f_sc.min = 1e-7
+    #modelBHJet.f_sc.max = 1e-5 # very big ranges can be 5e3 in BHJet paper
+    modelBHJet.f_sc.max = 100
+
+    modelBHJet.r_in.frozen = False
+    modelBHJet.r_in.min = 1
+    modelBHJet.r_in.max = 200 # very big ranges can be 5e3 in BHJet paper
+
+    modelBHJet.t_e.frozen = False
+    #modelBHJet.t_e.min = 511
+    modelBHJet.t_e.min = 10 # was hitting limit so change
+    #modelBHJet.t_e.max = 2000 #run 27
+    modelBHJet.t_e.max = 4000
+    return modelBHJet
 def run_9_low_hess_stats():
 
 
@@ -395,3 +520,31 @@ def run_9_low_hess_stats():
     #modelBHJet.f_heat.value=30.11640214
     return modelBHJet
 
+def good_fermi():
+    BHJetparams = {'Mbh':  1.e+09, 'theta':  2.5, 'dist':  543400., 'redsh':  0.116, 'jetrat':  0.0001, 'r_0':  9.52387442, 'z_diss':  859.22839479, 'z_acc':  1000., 'z_max':  660000., 't_e':  519.60478658, 'f_nth':  0.1, 'f_pl':  0., 'pspec':  1.32196564, 'f_heat':  0.41270582, 'f_beta':  99.99883881, 'f_sc':  0.00295681, 'p_beta':  0., 'sig_acc':  99.99983251, 'l_disk':  0.8, 'r_in':  52.1173464, 'r_out':  100000., 'compar1':  0.05, 'compar2':  0.5, 'compar3':  2., 'compsw':  2., 'velsw':  15., 'infosw':  0., 'dummy_norm':  1.}
+    # 69.10141828085294 Fermi cash SpectrumDataset
+    modelBHJet = BHJetSpectralModel(**BHJetparams)
+
+    return modelBHJet
+
+def good_hess():
+    BHJetparams = {'Mbh': 1.e+09, 'theta': 2.5, 'dist': 543400., 'redsh': 0.116, 'jetrat': 0.09997112, 'r_0': 29.14614532, 'z_diss': 501.16633994, 'z_acc': 1000., 'z_max': 660000., 't_e': 1784.74598726, 'f_nth': 0.1, 'f_pl': 0., 'pspec': 1.87981654, 'f_heat': 2.49997355, 'f_beta': 13.02990564, 'f_sc': 2.13163341e-06, 'p_beta': 0., 'sig_acc': 0.03989187, 'l_disk': 0.8, 'r_in': 13.77120156, 'r_out': 100000., 'compar1': 0.05, 'compar2': 0.5, 'compar3': 2., 'compsw': 2., 'velsw': 15., 'infosw': 0., 'dummy_norm': 1.}
+    # stat was 11.79757607110937 hess_reduced wstat SpectrumDatasetOnOff
+
+    modelBHJet = BHJetSpectralModel(**BHJetparams)
+
+    return modelBHJet
+
+def good_xmm():
+    BHJetparams = {'Mbh': 1.e+09, 'theta': 2.5, 'dist': 543400., 'redsh': 0.116, 'jetrat': 0.0999852, 'r_0': 64.04195713, 'z_diss': 515.0753283, 'z_acc': 1000., 'z_max': 660000., 't_e': 511.12289802, 'f_nth': 0.1, 'f_pl': 0., 'pspec': 2.36836652, 'f_heat': 0.49420928, 'f_beta': 98.52350802, 'f_sc': 0.00053134, 'p_beta': 0., 'sig_acc': 0.40609144, 'l_disk': 0.8, 'r_in': 39.9235586, 'r_out': 100000., 'compar1': 0.05, 'compar2': 0.5, 'compar3': 2., 'compsw': 2., 'velsw': 15., 'infosw': 0., 'dummy_norm': 1.}
+    # 272200.64755578 yRMZjmIP wstat StandardOGIPDataset
+    modelBHJet = BHJetSpectralModel(**BHJetparams)
+
+    return modelBHJet
+
+def good_joint_fit():
+    BHJetparams = {'Mbh':  1.e+09, 'theta':  2.5, 'dist':  543400., 'redsh':  0.116, 'jetrat':  0.0030991, 'r_0':  10.57909962, 'z_diss':  506.37911635, 'z_acc':  1000., 'z_max':  660000., 't_e':  511.00003397, 'f_nth':  0.1, 'f_pl':  0., 'pspec':  2.09074565, 'f_heat':  0.10000027, 'f_beta':  99.99999795, 'f_sc':  0.00782045, 'p_beta':  0., 'sig_acc':  0.11494939, 'l_disk':  0.8, 'r_in':  33.87755264, 'r_out':  100000., 'compar1':  0.05, 'compar2':  0.5, 'compar3':  2., 'compsw':  2., 'velsw':  15., 'infosw':  0., 'dummy_norm':  1.}
+    # Total Stat 101.93753929945794
+    modelBHJet = BHJetSpectralModel(**BHJetparams)
+
+    return modelBHJet
