@@ -21,7 +21,7 @@ from catalog import SourceCatalogHGPS
 from gammapy.utils.regions import (
     make_concentric_annulus_sky_regions
 )
-run_individual_fit=False # to try a manual fit we can adjust params above and skip full fit which might take an hour
+run_individual_fit=True # to try a manual fit we can adjust params above and skip full fit which might take an hour
 run_joint_fit=True # fit broadband obs using a weighted scheme
 
 # read Lucas test files as tutorial.ipynb at
@@ -277,13 +277,39 @@ fermi_fit_datasets.append(fermi_datasets[0].to_spectrum_dataset(on_region=select
 #
 # plt.show()
 
+# PKS 2155 MIcrowave mid flux value from digitizer of 1810.11341
+#
+e_ref=[3e-5,3.2e-5]
+e_min=[2.9e-5,3.2e-5]
+e_max=[3.2e-5,3.3e-5]
+e2dnde=[2.1e-14,1.8e-14]
+e2dnde_err=[0.1e-14,0.1e-14] # arbritary - there has to be an error
+microwave_table = Table([e_ref, e_min, e_max,e2dnde, e2dnde_err], names=('e_ref', 'e_min','e_max','e2dnde', 'e2dnde_err'), units=('eV','eV','eV','erg cm-2 s-1','erg cm-2 s-1'))
+
+microwave_table['e_ref']=microwave_table['e_ref'].to('keV')
+microwave_table['e_min']=microwave_table['e_min'].to('keV')
+microwave_table['e_max']=microwave_table['e_max'].to('keV')
+microwave_table['e2dnde'] = microwave_table['e2dnde'].to(u.TeV/(u.cm*u.cm*u.s))
+microwave_table['e2dnde_err'] = microwave_table['e2dnde_err'].to(u.TeV/(u.cm*u.cm*u.s))
+microwave_table.meta["SED_TYPE"] = "e2dnde"
+
+flux_points_microwave = FluxPoints.from_table(microwave_table)
+microwave_dataset = FluxPointsDataset(model1, flux_points_microwave)
+plot_datasets.append(microwave_dataset)
+print("f")
+print(plot_datasets)
+fit_datasets.append(microwave_dataset)
+
+microwave_fit_datasets=Datasets()
+microwave_fit_datasets.append(microwave_dataset)
+
 
 # PKS 2155-304 Optical from arxiv 0903.2924
 e_ref=[1.9,2.3,2.8]
 e_min=[1.89,2.29,2.79]
 e_max=[1.91,2.31,2.81]
 e2dnde=[1.28e-10,1.6e-10,1.61e-10]
-e2dnde_err=[1e-11,1e-11,1e-11]
+e2dnde_err=[1e-11,1e-11,1e-11] # arbritary - there has to be an error
 optical_table = Table([e_ref, e_min, e_max,e2dnde, e2dnde_err], names=('e_ref', 'e_min','e_max','e2dnde', 'e2dnde_err'), units=('eV','eV','eV','erg cm-2 s-1','erg cm-2 s-1'))
 
 optical_table['e_ref']=optical_table['e_ref'].to('keV')
@@ -299,6 +325,11 @@ plot_datasets.append(optical_dataset)
 print("f")
 print(plot_datasets)
 fit_datasets.append(optical_dataset)
+
+optical_fit_datasets=Datasets()
+optical_fit_datasets.append(optical_dataset)
+
+
 
 #reduced_datasets=datasets.stack_reduce(name="reduced") # demonstrates that stack reduced answer no different
 #reduced_datasets.models=[model]
@@ -333,18 +364,32 @@ if run_individual_fit:
     print ("-------------------------------------------------------")
     #modelBHJet=MH.run_8()
     #modelBHJet=MH.run_9_low_hess_stats()
-    modelBHJet=MH.Matteo_1810_11341()
     #modelBHJet=MH.run_9_low_hess_stats()
     #modelBHJet=MH.run_8()
 
-
+    # Fermi first - to see if 1e36 issue surfaces
+    modelBHJet=MH.Matteo_1810_11341()
     BHJetmodel = SkyModel(spectral_model=modelBHJet, name="BHJet")
     models = Models([BHJetmodel])
     fermi_results=FH.get_fit(fermi_fit_datasets,models)
 
+
+
     # individual fits to obtain a normalisation so that one
     # dataset with a very high fit statistic does not dominate?
     # left out optical as GSL croaks when considering optical alone
+    # try to fit microwave and see if same deal - microwave is fine ! - reinstate optical
+    modelBHJet=MH.Matteo_1810_11341()
+    BHJetmodel = SkyModel(spectral_model=modelBHJet, name="BHJet")
+    models = Models([BHJetmodel])
+    optical_results=FH.get_fit(optical_fit_datasets,models)
+
+    modelBHJet=MH.Matteo_1810_11341()
+    BHJetmodel = SkyModel(spectral_model=modelBHJet, name="BHJet")
+    models = Models([BHJetmodel])
+    microwave_results=FH.get_fit(microwave_fit_datasets,models)
+
+
     modelBHJet=MH.Matteo_1810_11341()
     BHJetmodel = SkyModel(spectral_model=modelBHJet, name="BHJet")
     models = Models([BHJetmodel])
@@ -354,29 +399,25 @@ if run_individual_fit:
     BHJetmodel = SkyModel(spectral_model=modelBHJet, name="BHJet")
     models = Models([BHJetmodel])
     xmm_results=FH.get_fit(xmm_fit_datasets,models)
-    #
-    #modelBHJet=MH.Matteo_1810_11341()
-    #BHJetmodel = SkyModel(spectral_model=modelBHJet, name="BHJet")
-    #models = Models([BHJetmodel])
-    #fermi_results=FH.get_fit(fermi_fit_datasets,models)
 
     all_stats={}
-    #all_stats["HESS"]=HESS_results.total_stat
-    #all_stats["FERMI"]=fermi_results.total_stat
-    #all_stats["XMM"]=xmm_results.total_stat
 
     all_stats[HESS_fit_datasets[0].name]=HESS_results.total_stat
     all_stats[fermi_fit_datasets[0].name]=fermi_results.total_stat
     all_stats[xmm_fit_datasets[0].name]=xmm_results.total_stat
+    all_stats[optical_fit_datasets[0].name]=optical_results.total_stat
+    all_stats[microwave_fit_datasets[0].name]=microwave_results.total_stat
 
     sorted_all_stats=dict(sorted(all_stats.items(), key=lambda item: item[1]))
     sorted_all_stats_list=list(sorted_all_stats.values())
     min_stat=sorted_all_stats_list[0]
-
+    print("----------")
+    print("min_stat "+ str(min_stat))
     #scaling_factors={}
     for k,v in sorted_all_stats.items():
-        fit_datasets[k].joint_fit_weight=v/min_stat # joint fit weight is 1 by default on initialised datasets
-
+        fit_datasets[k].joint_fit_weight=v/min_stat # joint fit weight is 1 by default on initialised dataset
+        print ( str(fit_datasets[k].name) + " " + str(fit_datasets[k].tag) + "Joint fit weight " + str(fit_datasets[k].joint_fit_weight))
+    print("----------")
 
 if run_joint_fit:
 
@@ -390,10 +431,7 @@ if run_joint_fit:
             if k.tag=="StandardOGIPDataset":
                 k.joint_fit_weight=21384 # val from individual fat
 
-    #modelBHJet=MH.Matteo_1810_11341()
-    #modelBHJet=MH.joint_fit_model_norm_weight()
-    #modelBHJet=MH.run25_final()
-    modelBHJet = MH.run_30_final()
+    modelBHJet=MH.Matteo_1810_11341()
     BHJetmodel = SkyModel(spectral_model=modelBHJet, name="BHJet")
     models = Models([BHJetmodel])
 
@@ -465,7 +503,8 @@ table_fermi = flux_points_fermi.to_table(sed_type="e2dnde", format="gadf-sed", f
 flux_points_fermi.plot(ax=ax, sed_type=sed_type, label="Fermi")
 fermi_tables.append(table_fermi)
 
-flux_points_optical.plot(ax=ax, sed_type=sed_type, label="Optical")
+flux_points_optical.plot(ax=ax, sed_type=sed_type, label="Optical") # direct plot without estimator
+flux_points_microwave.plot(ax=ax, sed_type=sed_type, label="Microwave") # direct plot without estimator
 
 print("Fermi consituent Table")
 print(table_fermi['e_ref','e2dnde'])
@@ -499,7 +538,7 @@ table_fermi_all=TH.del_ULs(table_fermi_all)
 table_hess_all=TH.del_ULs(table_hess_all)
 table_hess_all=TH.del_fluxes_below_limit(table_hess_all,1e-13) # see if this expands range of residual plot - omits low points but still plots model at those eneergies (as exxpected)
 # stack in sensible instrument order
-table_all=vstack([optical_table,table_xmm_newton,table_fermi_all,table_hess_all], join_type='outer')
+table_all=vstack([microwave_table,optical_table,table_xmm_newton,table_fermi_all,table_hess_all], join_type='outer')
 
 del table_all['ts']
 del table_all['sqrt_ts']
@@ -509,8 +548,8 @@ del table_all['stat']
 del table_all['is_ul']
 del table_all['counts']
 del table_all['success']
-ax.set_ylim(bottom=1e-13,top=1e-6)
-ax.set_xlim(left=1e-6,right=1e10)
+ax.set_ylim(bottom=1e-14,top=1e-6)
+ax.set_xlim(left=1e-9,right=1e10)
 ax.legend()
 
 plt.show()
@@ -538,4 +577,3 @@ kwargs_spectrum = {"kwargs_model": {"color":"red", "ls":"--"}, "kwargs_fp":{"col
 kwargs_residuals = {"color": "blue", "markersize":4, "marker":'s', }
 dataset.plot_fit(kwargs_residuals=kwargs_residuals, kwargs_spectrum=kwargs_spectrum)
 plt.show()
-

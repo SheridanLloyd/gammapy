@@ -238,6 +238,11 @@ def joint_fit_model_norm_weight():
 
     return modelBHJet
 def Matteo_1810_11341():
+    #modelBHJet=run_31()
+    #modelBHJet=matteo_1810_11341_high_param()
+    modelBHJet=matteo_1810_11341_low_param()
+    return modelBHJet
+def matteo_1810_11341_high_param():
     # PKS 2155-304 using canonical Blazar params as Table 4 BHJet paper 2108.12011
     # bit of a mash-up with 2108.12011 as some parameters have changed names/meaning
     BHJetparams = {
@@ -245,6 +250,183 @@ def Matteo_1810_11341():
         "theta": 2.5,  # 2.5
         "dist": 543400,  # 459902
         "redsh": 0.116,  # 0.1
+        "jetrat": 0.09,  # 0.5 0.174 for opt x-ray, synonym Nj (L EDD)
+        "r_0": 18,  # 10 jet radius
+        "z_diss": 600,  # 1000
+        "z_acc": 600,  # 1000
+        "z_max": 6.6e5,  # e8
+        "t_e": 861,  # free 960
+        "f_nth": 0.1,  # epsilon_pl in 1810.11341
+        "f_pl": 0,  # 0.01
+        "pspec": 2.01,  # 3 aka p parameter - slope of non thermal distribution
+        "f_heat": 10.4,  # free 20 x t_e heating factor at z diss
+        "f_beta": 48,  # 22-86 prev known as f_b free param of dynamical timescale fixes cooling break energy
+        "f_sc": 5.1e-6,  # free 5.e-6 #0.9
+        "p_beta": 0,  # fixed in BHJet #0.01
+        "sig_acc": 2.5,  # confusingly prev called sigma diss
+        "l_disk": 0.8,  # 0.8
+        "r_in": 110,  # 1e4
+        "r_out": 1e5,
+        "compar1": 0.05,
+        "compar2": 0.5,
+        "compar3": 2,
+        "compsw": 2,
+        "velsw": 15,  # synonym gamma acc , invokes BLJET flavor of model
+        "infosw": 0
+    }
+    # Change mins as a result of good fit hitting the minimums
+    # Plot the separate contributions from each seed photon field
+
+    modelBHJet = BHJetSpectralModel(**BHJetparams)
+    # Change mins as a result of good fit hitting the minimums
+    # Plot the separate contributions from each seed photon field
+
+    modelBHJet.f_nth.frozen = True
+
+    modelBHJet.jetrat.frozen = False
+    modelBHJet.jetrat.min = 1e-2
+    modelBHJet.jetrat.max = 3e-1
+
+    modelBHJet.r_0.frozen = False
+    modelBHJet.r_0.min = 1
+    modelBHJet.r_0.max = 200
+
+    modelBHJet.z_diss.frozen = False
+    # modelBHJet.z_diss.min = 500
+    modelBHJet.z_diss.min = 10
+    modelBHJet.z_diss.max = 2500
+
+    modelBHJet.sig_acc.frozen = False
+    modelBHJet.sig_acc.min = 1e-1
+    # modelBHJet.sig_acc.max = 1e-1
+    # modelBHJet.sig_acc.max = 100 # run 27
+    modelBHJet.sig_acc.max = 500
+
+    modelBHJet.pspec.frozen = False
+    modelBHJet.pspec.min = 1
+    modelBHJet.pspec.max = 4
+
+    modelBHJet.f_heat.frozen = False
+    # modelBHJet.f_heat.min = 0.1
+    modelBHJet.f_heat.min = 1  # this is a physical limit
+    modelBHJet.f_heat.max = 2.5
+
+    modelBHJet.f_beta.frozen = False
+    modelBHJet.f_beta.min = 1
+    # modelBHJet.f_beta.max = 100
+    modelBHJet.f_beta.max = 1000  # increase as was hitting max
+
+    modelBHJet.f_sc.frozen = False
+    modelBHJet.f_sc.min = 1e-7
+    # modelBHJet.f_sc.max = 1e-5 # very big ranges can be 5e3 in BHJet paper
+    modelBHJet.f_sc.max = 1
+
+    modelBHJet.r_in.frozen = False
+    modelBHJet.r_in.min = 1
+    modelBHJet.r_in.max = 200  # very big ranges can be 5e3 in BHJet paper
+
+    modelBHJet.t_e.frozen = False
+    # modelBHJet.t_e.min = 511
+    modelBHJet.t_e.min = 10  # was hitting limit so change
+    # modelBHJet.t_e.max = 2000 #run 27
+    modelBHJet.t_e.max = 4000
+    return modelBHJet
+
+
+
+def matteo_1810_11341_low_param():
+    # PKS 2155-304 using canonical Blazar params as Table 4 BHJet paper 2108.12011
+    # bit of a mash-up with 2108.12011 as some parameters have changed names/meaning
+    BHJetparams = {
+        "Mbh": 1e9,
+        "theta": 2.5,  # 2.5
+        "dist": 543400,  # 459902
+        "redsh": 0.116,  # 0.1
+        "jetrat": 0.09,  # 0.5 0.174 for opt x-ray, synonym Nj (L EDD)
+        "r_0": 18,  # 10 jet radius
+        "z_diss": 600,  # 1000
+        "z_acc": 600,  # 1000
+        "z_max": 6.6e5,  # e8
+        "t_e": 861,  # free 960
+        "f_nth": 0.1,  # epsilon_pl in 1810.11341
+        "f_pl": 0,  # 0.01
+        "pspec": 1.74,  # 3 aka p parameter - slope of non thermal distribution
+        "f_heat": 10.4,  # free 20 x t_e heating factor at z diss
+        "f_beta": 8,  # 22-86 prev known as f_b free param of dynamical timescale fixes cooling break energy
+        "f_sc": 1.3e-6,  # free 5.e-6 #0.9
+        "p_beta": 0,  # fixed in BHJet #0.01
+        "sig_acc": 2.5,  # confusingly prev called sigma diss
+        "l_disk": 0.8,  # 0.8
+        "r_in": 20,  # 1e4
+        "r_out": 1e5,
+        "compar1": 0.05,
+        "compar2": 0.5,
+        "compar3": 2,
+        "compsw": 2,
+        "velsw": 15,  # synonym gamma acc , invokes BLJET flavor of model
+        "infosw": 0
+    }
+    # Change mins as a result of good fit hitting the minimums
+    # Plot the separate contributions from each seed photon field
+
+    modelBHJet = BHJetSpectralModel(**BHJetparams)
+    modelBHJet.f_nth.frozen = True
+
+    modelBHJet.jetrat.frozen = False
+    modelBHJet.jetrat.min = 1e-2
+    modelBHJet.jetrat.max = 3e-1
+
+    modelBHJet.r_0.frozen = False
+    modelBHJet.r_0.min = 1
+    modelBHJet.r_0.max = 200
+
+    modelBHJet.z_diss.frozen = False
+    # modelBHJet.z_diss.min = 500
+    modelBHJet.z_diss.min = 10
+    modelBHJet.z_diss.max = 2500
+
+    modelBHJet.sig_acc.frozen = False
+    modelBHJet.sig_acc.min = 1e-1
+    # modelBHJet.sig_acc.max = 1e-1
+    # modelBHJet.sig_acc.max = 100 # run 27
+    modelBHJet.sig_acc.max = 500
+
+    modelBHJet.pspec.frozen = False
+    modelBHJet.pspec.min = 1
+    modelBHJet.pspec.max = 4
+
+    modelBHJet.f_heat.frozen = False
+    # modelBHJet.f_heat.min = 0.1
+    modelBHJet.f_heat.min = 1  # this is a physical limit
+    modelBHJet.f_heat.max = 2.5
+
+    modelBHJet.f_beta.frozen = False
+    modelBHJet.f_beta.min = 1
+    # modelBHJet.f_beta.max = 100
+    modelBHJet.f_beta.max = 1000  # increase as was hitting max
+
+    modelBHJet.f_sc.frozen = False
+    modelBHJet.f_sc.min = 1e-7
+    # modelBHJet.f_sc.max = 1e-5 # very big ranges can be 5e3 in BHJet paper
+    modelBHJet.f_sc.max = 1
+
+    modelBHJet.r_in.frozen = False
+    modelBHJet.r_in.min = 1
+    modelBHJet.r_in.max = 200  # very big ranges can be 5e3 in BHJet paper
+
+    modelBHJet.t_e.frozen = False
+    # modelBHJet.t_e.min = 511
+    modelBHJet.t_e.min = 10  # was hitting limit so change
+    # modelBHJet.t_e.max = 2000 #run 27
+    modelBHJet.t_e.max = 4000
+
+    return modelBHJet
+def old_matteo():
+    BHJetparams = {
+        "Mbh": 1e9,
+        "theta": 2.5,  # 2.5
+        "dist": 543400,  # 459902
+        "redsh": 0.116,  # 0.1BHJet
         "jetrat": 1e-2,  # 0.5 0.174 for opt x-ray, synonym Nj (L EDD)
         "r_0": 20,  # 10 jet radius
         "z_diss": 1000,  # 1000
@@ -300,7 +482,7 @@ def Matteo_1810_11341():
 
     modelBHJet.f_heat.frozen = False
     #modelBHJet.f_heat.min = 0.1
-    modelBHJet.f_heat.min = 0.01 # reduce min
+    modelBHJet.f_heat.min = 1 # reduce min
     modelBHJet.f_heat.max = 2.5
 
     modelBHJet.f_beta.frozen = False
@@ -324,7 +506,6 @@ def Matteo_1810_11341():
     modelBHJet.t_e.max = 4000
 
     return modelBHJet
-
 
 def run25_final():
     BHJetparams={'Mbh': 1.e+09, 'theta': 2.5, 'dist': 543400., 'redsh': 0.116, 'jetrat': 0.0030991, 'r_0': 10.57909962,
@@ -446,6 +627,97 @@ def run_30_final():
     #modelBHJet.t_e.max = 2000 #run 27
     modelBHJet.t_e.max = 4000
     return modelBHJet
+
+def run_31():
+    # PKS 2155-304 using canonical Blazar params as Table 4 BHJet paper 2108.12011
+    # bit of a mash-up with 2108.12011 as some parameters have changed names/meaning
+    BHJetparams = {
+        "Mbh": 1e9,
+        "theta": 2.5,  # 2.5
+        "dist": 543400,  # 459902
+        "redsh": 0.116,  # 0.1
+        "jetrat": 1e-2,  # 0.5 0.174 for opt x-ray, synonym Nj (L EDD)
+        "r_0": 20,  # 10 jet radius
+        "z_diss": 1000,  # 1000
+        "z_acc": 1000,  # 1000
+        "z_max": 6.6e5,  # e8
+        "t_e": 1000,  # free 960
+        "f_nth": 0.1,  # epsilon_pl in 1810.11341
+        "f_pl": 0,  # 0.01
+        "pspec": 1.7,  # 3 aka p parameter - slope of non thermal distribution
+        "f_heat": 10,  # free 20 x t_e heating factor at z diss
+        "f_beta": 40,  # 22-86 prev known as f_b free param of dynamical timescale fixes cooling break energy
+        "f_sc": 2e-6,  # free 5.e-6 #0.9
+        "p_beta": 0,  # fixed in BHJet #0.01
+        "sig_acc": 0.03,  # confusingly prev called sigma diss
+        "l_disk": 0.8,  # 0.8
+        "r_in": 40,  # 1e4
+        "r_out": 1e5,
+        "compar1": 0.05,
+        "compar2": 0.5,
+        "compar3": 2,
+        "compsw": 2,
+        "velsw": 15,  # synonym gamma acc , invokes BLJET flavor of model
+        "infosw": 0
+    }
+    # Change mins as a result of good fit hitting the minimums
+    # Plot the separate contributions from each seed photon field
+    modelBHJet = BHJetSpectralModel(**BHJetparams)
+
+    modelBHJet.f_nth.frozen = True
+
+    modelBHJet.jetrat.frozen = False
+    modelBHJet.jetrat.min = 1e-2
+    modelBHJet.jetrat.max = 3e-1
+
+    modelBHJet.r_0.frozen = False
+    modelBHJet.r_0.min = 1
+    modelBHJet.r_0.max = 200
+
+    modelBHJet.z_diss.frozen = False
+    #modelBHJet.z_diss.min = 500
+    modelBHJet.z_diss.min = 10
+    modelBHJet.z_diss.max = 2500
+
+    modelBHJet.sig_acc.frozen = False
+    modelBHJet.sig_acc.min = 1e-1
+    #modelBHJet.sig_acc.max = 1e-1
+    #modelBHJet.sig_acc.max = 100 # run 27
+    modelBHJet.sig_acc.max = 500
+
+    modelBHJet.pspec.frozen = False
+    modelBHJet.pspec.min = 1
+    modelBHJet.pspec.max = 4
+
+    modelBHJet.f_heat.frozen = False
+    #modelBHJet.f_heat.min = 0.1
+    modelBHJet.f_heat.min = 1 # this is a physical limit
+    modelBHJet.f_heat.max = 2.5
+
+    modelBHJet.f_beta.frozen = False
+    modelBHJet.f_beta.min = 1
+    #modelBHJet.f_beta.max = 100
+    modelBHJet.f_beta.max = 1000 # increase as was hitting max
+
+    modelBHJet.f_sc.frozen = False
+    modelBHJet.f_sc.min = 1e-7
+    #modelBHJet.f_sc.max = 1e-5 # very big ranges can be 5e3 in BHJet paper
+    modelBHJet.f_sc.max = 1
+
+    modelBHJet.r_in.frozen = False
+    modelBHJet.r_in.min = 1
+    modelBHJet.r_in.max = 200 # very big ranges can be 5e3 in BHJet paper
+
+    modelBHJet.t_e.frozen = False
+    #modelBHJet.t_e.min = 511
+    modelBHJet.t_e.min = 10 # was hitting limit so change
+    #modelBHJet.t_e.max = 2000 #run 27
+    modelBHJet.t_e.max = 4000
+
+    return modelBHJet
+
+
+
 def run_9_low_hess_stats():
 
 
